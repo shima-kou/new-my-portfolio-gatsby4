@@ -7,6 +7,11 @@ const InformationPage = ({ data, location }) => {
     <div>
       <h1>{data.microcmsInformation.title}</h1>
       <p>{dayjs(data.microcmsInformation.date).format('YYYY/MM/DD')}</p>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: data.microcmsInformation.body,
+        }}
+      />
     </div>
   );
 };
