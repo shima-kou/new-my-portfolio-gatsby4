@@ -17,7 +17,7 @@
     "dotenv": "^14.2.0",
     "gatsby": "^4.0.0-zz-next.1",
     "gatsby-plugin-alias-imports": "^1.0.5",
-    "gatsby-plugin-google-tagmanager": "^4.5.0",
+    "gatsby-plugin-google-gtag": "^4.5.0",
     "gatsby-plugin-image": "^2.5.2",
     "gatsby-plugin-react-helmet": "^5.5.0",
     "gatsby-source-microcms": "^2.0.0",

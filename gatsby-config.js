@@ -19,9 +19,11 @@ module.exports = {
       },
     },
     {
-      resolve: 'gatsby-plugin-google-tagmanager',
+      resolve: 'gatsby-plugin-google-gtag',
       options: {
-        id: 'GTM-KNRSDZ4',
+        gtagConfig: {
+          optimize_id: 'GTM-KNRSDZ4',
+        },
       },
     },
     'gatsby-plugin-react-helmet',
