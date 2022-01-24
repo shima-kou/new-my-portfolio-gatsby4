@@ -18,11 +18,20 @@ module.exports = {
         ],
       },
     },
-
     {
       resolve: 'gatsby-plugin-google-tagmanager',
       options: {
         id: 'GTM-KNRSDZ4',
+      },
+    },
+    'gatsby-plugin-react-helmet',
+    {
+      resolve: 'gatsby-plugin-alias-imports',
+      options: {
+        alias: {
+          '@': 'src',
+        },
+        extensions: ['js'],
       },
     },
   ],

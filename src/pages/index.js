@@ -10,7 +10,7 @@ const HomePage = ({ data, location }) => {
       <ul>
         {data.allMicrocmsInformation.edges.map(({ node }) => (
           <li key={node.informationId}>
-            <Link to={`/information/${node.informationId}`}>
+            <Link to={`/information/${node.informationId.replace(/(_)/g, '-')}`}>
               <h2>{node.title}</h2>
               <p>{dayjs(node.date).format('YYYY/MM/DD')}</p>
             </Link>
