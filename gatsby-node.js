@@ -122,27 +122,31 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
     const dimensions = report.columnHeader.dimensions;
     const rows = report.data.rows;
 
-    for (let row of rows) {
-      let valueMap = mapFromArray(dimensions, row.dimensions);
+    if (rows) {
+      for (const row of rows) {
+        let valueMap = mapFromArray(dimensions, row.dimensions);
 
-      let data = {
-        path: valueMap['ga:pagePath'],
-        title: valueMap['ga:pageTitle'],
-        count: parseInt(row.metrics[0].values[0], 10),
-      };
+        let data = {
+          path: valueMap['ga:pagePath'],
+          title: valueMap['ga:pageTitle'],
+          count: parseInt(row.metrics[0].values[0], 10),
+        };
 
-      let nodeMeta = {
-        id: createNodeId(`PopularPage-${data.path}`),
-        parent: null,
-        children: [],
-        internal: {
-          type: `PopularPage`,
-          contentDigest: createContentDigest(data),
-        },
-      };
+        let nodeMeta = {
+          id: createNodeId(`PopularPage-${data.path}`),
+          parent: null,
+          children: [],
+          internal: {
+            type: `PopularPage`,
+            contentDigest: createContentDigest(data),
+          },
+        };
 
-      let node = Object.assign({}, data, nodeMeta);
-      createNode(node);
+        let node = Object.assign({}, data, nodeMeta);
+        createNode(node);
+      }
     }
+
+    console.log(report, dimensions);
   }
 };
