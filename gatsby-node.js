@@ -50,23 +50,15 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
 
   // `PopularPage` のノードを追加する
   async function addPopularPageNodes() {
-    // Reporting API の利用に必要なデータを取ってくる
-    const VIEW_ID = process.env.GCP_VIEW_ID;
+    const scopes = 'https://www.googleapis.com/auth/analytics.readonly';
 
-    if (!VIEW_ID) {
-      reporter.panic(`GCP credentials missing.`);
-      return;
-    }
-
-    const client = await google.auth.getClient({
-      keyFile: './gatsby-v4-test-f6bab67446f1.json',
-      scopes: 'https://www.googleapis.com/auth/analytics.readonly',
-    });
+    const jwt = new google.auth.JWT(process.env.GCP_CLIENT_EMAIL, null, process.env.GCP_PRIVATE_KEY.replace(/\\n/gm, '\n'), scopes);
 
     const analyticsreporting = google.analyticsreporting({
       version: 'v4',
-      auth: client,
+      auth: jwt,
     });
+    await jwt.authorize();
 
     // 実際に API にリクエストをかけてデータを取得する
     // ここでは以下の条件でデータを取得しています
@@ -80,7 +72,7 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
       requestBody: {
         reportRequests: [
           {
-            viewId: VIEW_ID,
+            viewId: process.env.GCP_VIEW_ID,
             dateRanges: [
               {
                 startDate: '30daysAgo',
@@ -100,12 +92,6 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
                 expression: 'ga:sessions',
               },
             ],
-            filtersExpression: `ga:pagePath=~^/content/`,
-            orderBys: {
-              fieldName: 'ga:sessions',
-              sortOrder: 'DESCENDING',
-            },
-            pageSize: 20,
           },
         ],
       },
@@ -122,31 +108,30 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
     const dimensions = report.columnHeader.dimensions;
     const rows = report.data.rows;
 
-    if (rows) {
-      for (const row of rows) {
-        let valueMap = mapFromArray(dimensions, row.dimensions);
+    for (const row of rows) {
+      let valueMap = mapFromArray(dimensions, row.dimensions);
 
-        let data = {
-          path: valueMap['ga:pagePath'],
-          title: valueMap['ga:pageTitle'],
-          count: parseInt(row.metrics[0].values[0], 10),
-        };
+      let data = {
+        path: valueMap['ga:pagePath'],
+        title: valueMap['ga:pageTitle'],
+        count: parseInt(row.metrics[0].values[0], 10),
+      };
 
-        let nodeMeta = {
-          id: createNodeId(`PopularPage-${data.path}`),
-          parent: null,
-          children: [],
-          internal: {
-            type: `PopularPage`,
-            contentDigest: createContentDigest(data),
-          },
-        };
+      let nodeMeta = {
+        id: createNodeId(`PopularPage-${data.path}`),
+        parent: null,
+        children: [],
+        internal: {
+          type: `PopularPage`,
+          contentDigest: createContentDigest(data),
+        },
+      };
 
-        let node = Object.assign({}, data, nodeMeta);
-        createNode(node);
-      }
+      let node = Object.assign({}, data, nodeMeta);
+
+      console.log(node);
+
+      createNode(node);
     }
-
-    console.log(report, dimensions);
   }
 };

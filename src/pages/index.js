@@ -1,6 +1,8 @@
 import * as React from 'react';
-import { dayjs } from '../lib/dayjs';
 import { Link, graphql } from 'gatsby';
+
+import { PostRankingWidget } from '../components/post-ranking-widget';
+import { dayjs } from '../lib/dayjs';
 
 const HomePage = ({ data, location }) => {
   return (
@@ -17,6 +19,10 @@ const HomePage = ({ data, location }) => {
           </li>
         ))}
       </ul>
+
+      <div>
+        <PostRankingWidget data={data} />
+      </div>
     </>
   );
 };
@@ -25,6 +31,15 @@ export default HomePage;
 
 export const query = graphql`
   query {
+    allPopularPage(sort: { fields: [count], order: DESC }) {
+      nodes {
+        id
+        path
+        title
+        count
+      }
+    }
+
     allMicrocmsInformation {
       edges {
         node {
