@@ -1,14 +1,11 @@
 import React from 'react';
+import { SEO } from './seo';
 
-const Layout = ({ location, children }) => {
-  const rootPath = `${__PATH_PREFIX__}/`;
-  const isRootPath = location.pathname === rootPath;
-
+export const Layout = ({ children, title }) => {
   return (
-    <div className="global-wrapper" data-is-root-path={isRootPath}>
+    <div className="global-wrapper">
+      <SEO title={title} />
       <main>{children}</main>
     </div>
   );
 };
-
-export default Layout;

@@ -4,12 +4,12 @@ const { google } = require('googleapis');
 exports.createSchemaCustomization = ({ actions, schema }) => {
   const { createTypes } = actions;
 
-  createPupularPage();
+  createPageRank();
 
-  // `IPopularPage` と `PopularPage` を作成する
-  function createPupularPage() {
+  // `IPageRank` と `PageRank` を作成する
+  function createPageRank() {
     createTypes(`
-      interface IPopularPage @nodeInterface {
+      interface IPageRank @nodeInterface {
         id: ID!
         path: String!
         title: String!
@@ -19,14 +19,14 @@ exports.createSchemaCustomization = ({ actions, schema }) => {
 
     createTypes(
       schema.buildObjectType({
-        name: `PopularPage`,
+        name: `PageRank`,
         fields: {
           id: { type: `ID!` },
           path: { type: `String!` },
           title: { type: `String!` },
           count: { type: `Int!` },
         },
-        interfaces: [`Node`, `IPopularPage`],
+        interfaces: [`Node`, `IPageRank`],
       })
     );
   }
@@ -35,6 +35,7 @@ exports.createSchemaCustomization = ({ actions, schema }) => {
 exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, reporter }) => {
   const { createNode } = actions;
 
+  // 配列の片方をキー、片方を値にしたオブジェクトを作成する
   const mapFromArray = (a1, a2) => {
     let valueMap = {};
     for (let i = 0, length = Math.min(a1.length, a2.length); i < length; i++) {
@@ -46,39 +47,40 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
     return valueMap;
   };
 
-  await addPopularPageNodes();
+  await addPageRankNodes();
 
-  // `PopularPage` のノードを追加する
-  async function addPopularPageNodes() {
+  // `PageRank` のノードを追加する
+  async function addPageRankNodes() {
     const scopes = 'https://www.googleapis.com/auth/analytics.readonly';
 
+    // 認証に必要な情報を設定
     const jwt = new google.auth.JWT(process.env.GCP_CLIENT_EMAIL, null, process.env.GCP_PRIVATE_KEY.replace(/\\n/gm, '\n'), scopes);
 
     const analyticsreporting = google.analyticsreporting({
       version: 'v4',
       auth: jwt,
     });
+
+    // 認証
     await jwt.authorize();
 
-    // 実際に API にリクエストをかけてデータを取得する
+    // 下記で API にリクエストをかけてデータを取得する
     // ここでは以下の条件でデータを取得しています
-    // 期間: 30 日前から当日まで
-    // ディメンション: ページパスとページタイトル
-    // 指標: セッション数
-    // 絞り込み: ページパスが `/content/` から始まるものに限定
-    // 並び順: セッション数の降順
-    // データ取得数: 20 件
     const res = await analyticsreporting.reports.batchGet({
       requestBody: {
         reportRequests: [
           {
             viewId: process.env.GCP_VIEW_ID,
+
+            // 期間: 30 日前から当日まで
             dateRanges: [
               {
                 startDate: '30daysAgo',
                 endDate: 'today',
               },
             ],
+
+            // ページパスとページタイトルを基準にする
             dimensions: [
               {
                 name: 'ga:pagePath',
@@ -87,26 +89,41 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
                 name: 'ga:pageTitle',
               },
             ],
+
+            // ページビュー数を指標にする
             metrics: [
               {
-                expression: 'ga:sessions',
+                expression: 'ga:pageviews',
               },
             ],
+
+            // ページパスが `/information/` から始まるものに限定。
+            filtersExpression: `ga:pagePath=~^/information/`,
+
+            // 並び順: ページビュー数の降順
+            orderBys: {
+              fieldName: 'ga:pageviews',
+              sortOrder: 'DESCENDING',
+            },
+
+            // 最大取得件数、PV数を各ページの詳細ページへ表示したいので今回は2000件にしておく
+            pageSize: 1000,
           },
         ],
       },
     });
 
-    // データが取得できなければ終了
+    // データが取得できない場合は終了させる
     if (res.statusText !== 'OK') {
       reporter.panic(`Reporting API response status is not OK.`);
       return;
     }
 
-    // レスポンスからデータを抽出して node として保存する
     const [report] = res.data.reports;
     const dimensions = report.columnHeader.dimensions;
     const rows = report.data.rows;
+
+    console.log(rows);
 
     for (const row of rows) {
       let valueMap = mapFromArray(dimensions, row.dimensions);
@@ -118,20 +135,20 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest, repor
       };
 
       let nodeMeta = {
-        id: createNodeId(`PopularPage-${data.path}`),
+        id: createNodeId(`PageRank-${data.path}`),
         parent: null,
         children: [],
         internal: {
-          type: `PopularPage`,
+          type: `PageRank`,
           contentDigest: createContentDigest(data),
         },
       };
 
       let node = Object.assign({}, data, nodeMeta);
 
-      console.log(node);
-
-      createNode(node);
+      if (valueMap['ga:pagePath'].slice(-1) === '/') {
+        createNode(node);
+      }
     }
   }
 };

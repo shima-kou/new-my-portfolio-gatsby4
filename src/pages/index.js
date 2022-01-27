@@ -1,28 +1,31 @@
 import * as React from 'react';
 import { Link, graphql } from 'gatsby';
-
+import { Layout } from '../components/layout';
 import { PostRankingWidget } from '../components/post-ranking-widget';
 import { dayjs } from '../lib/dayjs';
 
-const HomePage = ({ data, location }) => {
+const HomePage = ({ data }) => {
   return (
     <>
-      <h1>Rendering Modes Starter</h1>
+      <Layout title="TOP">
+        <section>
+          <h2>記事一覧</h2>
+          <ul>
+            {data.allMicrocmsInformation.edges.map(({ node }) => (
+              <li key={node.informationId}>
+                <Link to={`/information/${node.informationId.replace(/(_)/g, '-')}/`}>
+                  <span>{node.title}</span>
+                  <small>{dayjs(node.date).format('YYYY/MM/DD')}</small>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <ul>
-        {data.allMicrocmsInformation.edges.map(({ node }) => (
-          <li key={node.informationId}>
-            <Link to={`/information/${node.informationId.replace(/(_)/g, '-')}`}>
-              <h2>{node.title}</h2>
-              <p>{dayjs(node.date).format('YYYY/MM/DD')}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <div>
-        <PostRankingWidget data={data} />
-      </div>
+        <div>
+          <PostRankingWidget data={data} />
+        </div>
+      </Layout>
     </>
   );
 };
@@ -31,7 +34,7 @@ export default HomePage;
 
 export const query = graphql`
   query {
-    allPopularPage(sort: { fields: [count], order: DESC }) {
+    allPageRank(sort: { fields: [count], order: DESC }) {
       nodes {
         id
         path

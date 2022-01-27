@@ -5,6 +5,14 @@ require('dotenv').config({
 });
 
 module.exports = {
+  siteMetadata: {
+    title: 'Google Analytics Reporting API テスト',
+    author: {
+      name: 'Shimako',
+    },
+    description: 'Google Analytics Reporting API テスト',
+    siteUrl: 'https://nervous-goldwasser-f655b8.netlify.app/',
+  },
   plugins: [
     {
       resolve: 'gatsby-source-microcms',

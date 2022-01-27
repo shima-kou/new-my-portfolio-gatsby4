@@ -1,0 +1,35 @@
+ul {
+  margin-bottom: 30px;
+}
+
+ul li {
+  font-size: 16px;
+  line-height: 1.85;
+  margin-bottom: 14px;
+}
+
+ul li:last-child {
+  margin-bottom: 0;
+}
+
+ul li small {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+ol li {
+  font-size: 16px;
+  line-height: 1.85;
+  margin-bottom: 14px;
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+}
+
+h2 {
+  font-size: 20px;
+  margin-left: 20px;
+  margin-bottom: 8px;
+}
